@@ -1,19 +1,44 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import Cookies from 'js-cookie'
+
+import AppLogin from '../views/Auth/AppLogin.vue'
+import TodosView from '../views/Todos/TodosView.vue'
+import UsersView from '../views/UsersView/UsersView.vue'
+import { useStoreTyped } from '@/store'
+const isAuth = Boolean(Cookies.get('isAuth'));
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
-    name: 'home',
-    component: HomeView
+    path: "/login",
+    component: AppLogin,
+    beforeEnter: () => {
+      if (isAuth) {
+        return '/todos'
+      }
+    }
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: "/users",
+    component: UsersView,
+    beforeEnter: () => {
+      const store = useStoreTyped()
+      if (!isAuth) {
+        return '/login'
+      }
+    }
+  },
+  {
+    path: "/todos",
+    component: TodosView,
+    beforeEnter: () => {
+      if (!isAuth) {
+        return '/login'
+      }
+    }
+  },
+  {
+    path: "/",
+    redirect: "/login"
   }
 ]
 

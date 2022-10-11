@@ -1,30 +1,42 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <app-nav></app-nav>
+  <router-view />
 </template>
 
+<script>
+import { defineComponent } from "vue";
+import AppNav from "@/components/Navbar/AppNavbar.vue";
+import { useStoreTyped } from "./store";
+import Cookies from "js-cookie";
+export default defineComponent({
+  components: { AppNav },
+  setup() {
+    const { commit, state, dispatch } = useStoreTyped();
+    return { store: state, commit, dispatch };
+  },
+  mounted() {
+    const isAuth = Boolean(Cookies.get("isAuth"));
+    if (!this.store.user.me.name && isAuth) {
+      this.dispatch("user/getUser", {
+        method: "GET",
+        path: "/me",
+      });
+    }
+    if (!this.store.todos.length && isAuth) {
+      this.dispatch("todos/getTodos", {
+        path: "/todos",
+        method: "GET",
+      });
+    }
+  },
+});
+</script>
+
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-nav {
-  padding: 30px;
-}
-
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
 }
 </style>
