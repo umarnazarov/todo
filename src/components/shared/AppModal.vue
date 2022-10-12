@@ -1,9 +1,5 @@
 <template>
-  <div
-    class="container_modal"
-    v-if="isVisible"
-    @click="$emit('update:isVisible', false)"
-  >
+  <div class="container_modal" v-if="isVisible" @click="$emit('closeModal')">
     <div @click.stop class="content_modal">
       <slot></slot>
     </div>

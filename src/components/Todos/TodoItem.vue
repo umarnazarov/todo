@@ -6,15 +6,15 @@
     </div>
     <div class="todo_item__buttons">
       <button
-        @click="$event, handleToggleTodo(todo)"
+        @click="handleOpen(todo)"
         class="todo_item__buttons--edit"
-        v-if="isAuthorized(todo.createdBy)"
+        v-if="isAuthorized(todo.createdBy!)"
       >
         Edit
       </button>
       <button
-        v-if="isAuthorized(todo.createdBy)"
-        @click="handleDeleteTodo($event, todo.id)"
+        v-if="isAuthorized(todo.createdBy!)"
+        @click="handleDeleteTodo(todo.id!)"
         id="todo_item__btn"
       >
         X
@@ -22,15 +22,19 @@
     </div>
   </div>
 </template>
-<script>
+<script lang="ts">
+import { useModalStore } from "@/store/models/model.modal";
+import { useTodosStore } from "@/store/models/model.todos";
+import { useUserStore } from "@/store/models/model.user";
+import { ITodo } from "@/store/types/Todos/todo";
+import { storeToRefs } from "pinia";
 import { defineComponent, PropType } from "vue";
-import { useStoreTyped } from "@/store";
 
 export default defineComponent({
   name: "todo-item",
   props: {
     todo: {
-      type: Object,
+      type: Object as PropType<ITodo>,
       required: true,
     },
   },
@@ -40,36 +44,23 @@ export default defineComponent({
     };
   },
   setup() {
-    const { commit, state, dispatch } = useStoreTyped();
-    return { store: state, commit, dispatch };
+    const store = useTodosStore();
+    const userStore = useUserStore();
+    const modalStore = useModalStore();
+
+    const { handleDeleteTodos } = store;
+
+    const { isAuthorized } = userStore;
+    return { store, handleDeleteTodos, isAuthorized, modalStore };
   },
   methods: {
-    async handleDeleteTodo(e, id) {
+    async handleDeleteTodo(id: number) {
       this.isLoading = true;
-      await new Promise((res) => {
-        res(
-          this.dispatch("todos/handleDeleteTodos", {
-            path: `/todos/${id}`,
-            method: "DELETE",
-            body: { id },
-          })
-        );
-      });
+      await this.handleDeleteTodos(id);
       this.isLoading = false;
     },
-    isAuthorized(createdBy) {
-      console.log(this.store);
-      return this.store.user.isAdmin || this.store.user.me.role === createdBy;
-    },
-    handleToggleTodo(todo) {
-      this.commit("modal/setModalBody", {
-        headerTitle: "Update todo",
-        title: todo.title,
-        description: todo.description,
-        fetchMethod: "PUT",
-        fetchPath: `/todos/${todo.id}`,
-      });
-      this.commit("modal/setIsOpen", true);
+    handleOpen(todo) {
+      this.$emit("openModal", todo);
     },
   },
 });

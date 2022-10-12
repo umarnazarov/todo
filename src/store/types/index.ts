@@ -1,14 +1,7 @@
-import { Commit } from "vuex";
 import { ITodo } from "./Todos/todo";
 import { IUser, IUserBody } from "./User/user";
 
-export interface CommitFunction {
-    commit: Commit;
-}
 
-export interface CommitStateFunction<T> extends CommitFunction {
-    state: T;
-}
 
 export interface IState {
     user: IUser;
@@ -34,7 +27,7 @@ export type IError = {
 }
 
 export interface IFetchOptions {
-    body: IUserBody;
+    body?: IUserBody;
     path: string;
     method: string;
 }

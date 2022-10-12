@@ -1,9 +1,10 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import store, { key } from './store'
 import components from './components/shared'
 import directives from './directives'
+import { createPinia } from 'pinia'
+	const pinia = createPinia()
 
 
 const app = createApp(App);
@@ -17,6 +18,6 @@ directives.forEach(directive => {
 })
 
 app
-    .use(store, key)
+    .use(pinia)
     .use(router)
     .mount('#app')

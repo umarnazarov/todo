@@ -1,47 +1,94 @@
 <template>
   <div class="todos_container">
-    <app-button @click="handleOPenModal" title="Create new todo"></app-button>
-    <app-form :title="title" :description="description"></app-form>
+    <app-button
+      @click="handleOpenCreateModal"
+      title="Create new todo"
+    ></app-button>
+    <app-form
+      @handleTitle="handleTitle"
+      @handleDescr="handleDescr"
+      :isOpen="isOpenCreate"
+      :title="title"
+      :description="description"
+      @submit="onCreateTodo"
+      @closeModal="isOpenCreate = false"
+    ></app-form>
+    <app-form
+      @handleTitle="handleTitle"
+      @handleDescr="handleDescr"
+      :isOpen="isOpenEdit"
+      @submit="onUpdateTodo"
+      :title="title"
+      :description="description"
+      @closeModal="isOpenEdit = false"
+    ></app-form>
     <div class="todos_content">
-      <todo-item v-for="todo in todos" :key="todo.id" :todo="todo"></todo-item>
+      <todo-item
+        @openModal="handleOpenEditModal"
+        v-for="todo in storeTodos.list"
+        :key="todo.id"
+        :todo="todo"
+      ></todo-item>
     </div>
-    <p v-if="$store.state.todos.isPending">Loading...</p>
+    <p v-if="storeTodos.isPending">Loading...</p>
   </div>
 </template>
 
-<script>
-import { useStoreTyped } from "@/store";
+<script lang="ts">
 import { defineComponent } from "vue";
 import TodoItem from "@/components/Todos/TodoItem.vue";
+import { useTodosStore } from "@/store/models/model.todos";
 
 export default defineComponent({
   setup() {
-    const { commit, state, dispatch } = useStoreTyped();
-    return { store: state, commit, dispatch };
+    const storeTodos = useTodosStore();
+    const { handleUpdateTodo } = storeTodos;
+
+    return { storeTodos, handleUpdateTodo };
   },
   data() {
     return {
+      id: "",
       title: "",
       description: "",
-      isOpen: "",
+      isOpenCreate: false,
+      isOpenEdit: false,
     };
   },
-  computed: {
-    todos() {
-      return this.$store.state.todos.list;
-    },
-  },
-
   methods: {
-    handleOPenModal() {
-      this.commit("modal/setModalBody", {
-        headerTitle: "Create new todo",
-        title: "",
-        description: "",
-        fetchMethod: "POST",
-        fetchPath: "/todos",
-      });
-      this.commit("modal/setIsOpen", true);
+    handleTitle(event) {
+      this.title = event.target.value;
+    },
+    handleDescr(event) {
+      this.description = event.target.value;
+    },
+    onCreateTodo(form: any) {
+      this.handleUpdateTodo(form, "/todos", "POST");
+      this.isOpenCreate = false;
+    },
+    onUpdateTodo() {
+      this.handleUpdateTodo(
+        {
+          title: this.title,
+          description: this.description,
+        },
+        `/todos/${this.id}`,
+        "PUT"
+      );
+      this.isOpenEdit = false;
+    },
+    handleOpenEditModal(form) {
+      console.log(form.title);
+      this.title = form.title;
+      this.description = form.description;
+      this.id = form.id;
+      this.isOpenEdit = true;
+    },
+    handleOpenCreateModal() {
+      this.title = "";
+      this.description = "";
+      this.id = "";
+      this.isOpenCreate = true;
     },
   },
   components: { TodoItem },

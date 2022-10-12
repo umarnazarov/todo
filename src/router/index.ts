@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import AppLogin from '../views/Auth/AppLogin.vue'
 import TodosView from '../views/Todos/TodosView.vue'
 import UsersView from '../views/UsersView/UsersView.vue'
-import { useStoreTyped } from '@/store'
+import { useUserStore } from '@/store/models/model.user'
 const isAuth = Boolean(Cookies.get('isAuth'));
 
 const routes: Array<RouteRecordRaw> = [
@@ -21,8 +21,8 @@ const routes: Array<RouteRecordRaw> = [
     path: "/users",
     component: UsersView,
     beforeEnter: () => {
-      const store = useStoreTyped()
-      if (!isAuth) {
+      const store = useUserStore()
+      if (!isAuth || !store.isAdmin) {
         return '/login'
       }
     }

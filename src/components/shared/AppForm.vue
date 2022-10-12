@@ -1,85 +1,80 @@
 <template>
-  <app-modal v-model:isVisible="$store.state.modal.isOpen">
+  <app-modal :isVisible="isOpen" @closeModal="$emit('closeModal')">
     <div>
-      <h3>{{ $store.state.modal.headerTitle }}</h3>
+      <h3>{{ modalStore.headerTitle }}</h3>
       <form @submit.prevent="handleSubmit">
         <app-label-input
-          @input="$store.commit('modal/updateTitle', $event)"
-          :value="$store.state.modal.title"
+          @input="$emit('handleTitle', $event)"
+          :value="title"
           type="text"
           :idx="0"
           labelTitle="Tile"
         ></app-label-input>
         <app-label-input
-          @input="$store.commit('modal/updateDescription', $event)"
-          :value="$store.state.modal.description"
+          @input="$emit('handleDescr', $event)"
           type="text"
+          :value="description"
           labelTitle="Description"
         ></app-label-input>
-        <app-button
-          @click="handleSubmit"
-          style="margin-top: 1rem"
-          :title="btnText"
-        ></app-button>
+        <app-button style="margin-top: 1rem" title="Submit"></app-button>
       </form>
       <span
-        :v-focus="error.status"
-        v-if="error"
+        v-if="errorMessage"
         style="color: red; display: inline-block; padding-top: 10px"
       >
-        {{ error.message }}
+        {{ errorMessage }}
       </span>
     </div>
   </app-modal>
 </template>
 
-<script>
+<script lang="ts">
+//packages
 import { defineComponent } from "vue";
+
+//stores
+import { useModalStore } from "@/store/models/model.modal";
+import { useTodosStore } from "@/store/models/model.todos";
+
+//components
 import AppModal from "./AppModal.vue";
 import AppButton from "./AppButton.vue";
-import { useStoreTyped } from "@/store";
+
 export default defineComponent({
   name: "app-form",
   props: {
     headerTitle: String,
+    isOpen: {
+      type: String,
+    },
+    description: {
+      type: String,
+    },
+    title: {
+      type: String,
+    },
   },
   data() {
     return {
-      error: {
-        status: false,
-        message: "",
-      },
+      errorMessage: "",
     };
   },
   setup() {
-    const { commit, state, dispatch } = useStoreTyped();
-    return { store: state, commit, dispatch };
+    const modalStore = useModalStore();
+    const todosStore = useTodosStore();
+
+    const { handleUpdateTodo } = todosStore;
+
+    return { modalStore, todosStore, handleUpdateTodo };
   },
   methods: {
     async handleSubmit() {
-      const modal = this.store.modal;
-      if (!modal.title) {
-        this.error = {
-          status: true,
-          message: "Title cannot be empty",
-        };
-        return;
-      }
-      this.error = {};
-      this.dispatch("todos/handleUpdateTodo", {
-        body: {
-          title: modal.title,
-          description: modal.description,
-        },
-        method: modal.fetchMethod,
-        path: modal.fetchPath,
+      this.$emit("submit", {
+        title: this.title,
+        description: this.description,
       });
-      this.commit("modal/setIsOpen", false);
-    },
-  },
-  computed: {
-    btnText() {
-      return this.store.todos.isPending ? "Adding new todo..." : "Create";
+
+      this.modalStore.isOpen = false;
     },
   },
   components: { AppModal, AppButton },

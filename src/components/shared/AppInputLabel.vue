@@ -16,7 +16,6 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   name: "app-label-input",
   props: {
-    modelValue: [String, Number],
     labelTitle: {
       type: String,
       required: true,
@@ -37,7 +36,8 @@ export default defineComponent({
     isError: {
       type: String,
     }
-  }
+  },
+
 });
 </script>
 <style lang="css">

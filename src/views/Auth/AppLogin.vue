@@ -19,9 +19,9 @@
         style="margin-top: 0.8rem"
         title="Login"
       ></app-button>
-      <p v-if="inputs.length !== 0 || $store.state.user.error">
+      <p v-if="inputs.length !== 0 || error || errorMessage">
         <span style="color: red; display: inline-block; padding-top: 10px">
-          {{ error || $store.state.user.error }}
+          {{ error || errorMessage }}
         </span>
       </p>
     </div>
@@ -29,8 +29,10 @@
 </template>
 
 <script lang="ts">
-import { useStoreTyped } from "@/store";
-import { defineComponent } from "vue";
+import { useTodosStore } from "@/store/models/model.todos";
+import { useUserStore } from "@/store/models/model.user";
+import { storeToRefs } from "pinia";
+import { computed, defineComponent } from "vue";
 import { useRouter } from "vue-router";
 
 export default defineComponent({
@@ -51,39 +53,39 @@ export default defineComponent({
           value: "",
         },
       ],
-      error: "",
+      errorMessage: "",
     };
   },
   setup() {
-    const { commit, state, dispatch } = useStoreTyped();
     const router = useRouter();
-    return { store: state, commit, dispatch, router };
+    const userStore = useUserStore();
+    const todosStore = useTodosStore();
+
+    const { isRejected, error } = storeToRefs(userStore);
+    const { list } = storeToRefs(todosStore);
+
+    const { getUser } = userStore;
+    return { router, list, isRejected, getUser, error };
   },
   methods: {
     async handleSubmit() {
       const login = this.inputs[0].value;
       const password = this.inputs[1].value;
-      this.error = "";
+      this.errorMessage = "";
       if (!login) {
-        this.error = "Username cannot be empty";
+        this.errorMessage = "Username cannot be empty";
         return;
       }
       if (!password) {
-        this.error = "Password cannot be empty";
+        this.errorMessage = "Password cannot be empty";
         return;
       }
 
       const form = { login, password };
-      await new Promise((res) => {
-        res(
-          this.dispatch("user/getUser", {
-            body: form,
-            method: "POST",
-            path: "/login",
-          })
-        );
-      });
-      !this.store.user.isRejected && window.location.replace("/todos");
+      await new Promise((res) =>
+        res(this.getUser({ body: form, method: "POST", path: "/login" }))
+      );
+      !this.isRejected && window.location.replace("/todos");
     },
     hadnleInputChange(e: any, idx: number) {
       this.inputs[idx].value = e.target.value;

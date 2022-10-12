@@ -3,31 +3,45 @@
   <router-view />
 </template>
 
-<script>
+<script lang="ts">
+// packages
+import { storeToRefs } from "pinia";
 import { defineComponent } from "vue";
-import AppNav from "@/components/Navbar/AppNavbar.vue";
-import { useStoreTyped } from "./store";
 import Cookies from "js-cookie";
+
+//stores
+import { useUserStore } from "./store/models/model.user";
+import { useTodosStore } from "./store/models/model.todos";
+
+// components
+import AppNav from "@/components/Navbar/AppNavbar.vue";
+
 export default defineComponent({
   components: { AppNav },
   setup() {
-    const { commit, state, dispatch } = useStoreTyped();
-    return { store: state, commit, dispatch };
+    const userStore = useUserStore();
+    const todosStore = useTodosStore();
+
+    const { me } = storeToRefs(userStore);
+    const { list } = storeToRefs(todosStore);
+
+    return {
+      me,
+      list,
+      userStore,
+      todosStore,
+    };
   },
   mounted() {
     const isAuth = Boolean(Cookies.get("isAuth"));
-    if (!this.store.user.me.name && isAuth) {
-      this.dispatch("user/getUser", {
+    if (!this.me?.name && isAuth) {
+      this.userStore.getAllUsers();
+      this.userStore.getUser({
         method: "GET",
         path: "/me",
       });
     }
-    if (!this.store.todos.length && isAuth) {
-      this.dispatch("todos/getTodos", {
-        path: "/todos",
-        method: "GET",
-      });
-    }
+    if (!this.list.length && isAuth) this.todosStore.getTodos();
   },
 });
 </script>
