@@ -1,37 +1,45 @@
 <template>
-  <div class="todo_item">
+  <div
+    class="border-300 border-1 my-3 w-full flex justify-content-between py-6 px-3"
+  >
     <div>
-      <h4 class="todo_item__title">{{ todo.title }}</h4>
-      <p class="todo_item__description">{{ todo.description }}</p>
+      <h4 class="font-normal text-base">{{ todo.title }}</h4>
+      <p class="text-sm pt-3">{{ todo.description }}</p>
     </div>
     <div class="todo_item__buttons">
-      <button
+      <prime-btn
         @click="handleOpen(todo)"
-        class="todo_item__buttons--edit"
         v-if="isAuthorized(todo.createdBy!)"
-      >
-        Edit
-      </button>
-      <button
+        label="Edit"
+        class="p-button-warning p-button-sm"
+      />
+
+      <prime-btn
         v-if="isAuthorized(todo.createdBy!)"
         @click="handleDeleteTodo(todo.id!)"
-        id="todo_item__btn"
-      >
-        X
-      </button>
+        :icon="
+          isPendingDelete && todoID === todo.id
+            ? 'pi pi-spin pi-spinner'
+            : 'pi pi-times'
+        "
+        class="p-button-rounded p-button-danger p-button-text ml-3"
+      />
     </div>
   </div>
 </template>
 <script lang="ts">
-import { useModalStore } from "@/store/models/model.modal";
 import { useTodosStore } from "@/store/models/model.todos";
 import { useUserStore } from "@/store/models/model.user";
 import { ITodo } from "@/store/types/Todos/todo";
 import { storeToRefs } from "pinia";
+import Button from "primevue/button";
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "todo-item",
+  components: {
+    "prime-btn": Button,
+  },
   props: {
     todo: {
       type: Object as PropType<ITodo>,
@@ -44,18 +52,18 @@ export default defineComponent({
     };
   },
   setup() {
-    const store = useTodosStore();
+    const todosStore = useTodosStore();
     const userStore = useUserStore();
-    const modalStore = useModalStore();
 
-    const { handleDeleteTodos } = store;
-
+    const { handleDeleteTodos } = todosStore;
+    const { isPendingDelete, todoID } = storeToRefs(todosStore);
     const { isAuthorized } = userStore;
-    return { store, handleDeleteTodos, isAuthorized, modalStore };
+    return { handleDeleteTodos, isAuthorized, isPendingDelete, todoID };
   },
   methods: {
-    async handleDeleteTodo(id: number) {
+    async handleDeleteTodo(id) {
       this.isLoading = true;
+      this.todoID = id;
       await this.handleDeleteTodos(id);
       this.isLoading = false;
     },

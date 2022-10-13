@@ -1,28 +1,41 @@
 <template>
   <app-modal :isVisible="isOpen" @closeModal="$emit('closeModal')">
     <div>
-      <h3>{{ modalStore.headerTitle }}</h3>
+      <h3>{{ headerTitle }}</h3>
       <form @submit.prevent="handleSubmit">
-        <app-label-input
+        <input-text
           @input="$emit('handleTitle', $event)"
           :value="title"
           type="text"
-          :idx="0"
+          placeholder="Title"
           labelTitle="Tile"
-        ></app-label-input>
-        <app-label-input
+          class="w-full mt-3"
+          :class="{
+            'p-invalid': status?.isRejected || (errorMessage && !title),
+          }"
+        ></input-text>
+        <input-text
+          class="w-full mt-3 mb-3"
+          placeholder="Description"
           @input="$emit('handleDescr', $event)"
           type="text"
           :value="description"
           labelTitle="Description"
-        ></app-label-input>
-        <app-button style="margin-top: 1rem" title="Submit"></app-button>
+          :class="{
+            'p-invalid': errorMessage && !description,
+          }"
+        ></input-text>
+        <prime-btn
+          @click="handleSubmit"
+          class="w-full"
+          :label="status?.isPending ? 'Loading' : 'Submit'"
+        ></prime-btn>
       </form>
       <span
-        v-if="errorMessage"
-        style="color: red; display: inline-block; padding-top: 10px"
+        class="text-sm text-red-500 block mt-3"
+        v-if="errorMessage || status?.isRejected"
       >
-        {{ errorMessage }}
+        {{ errorMessage || status?.error }}
       </span>
     </div>
   </app-modal>
@@ -33,15 +46,22 @@
 import { defineComponent } from "vue";
 
 //stores
-import { useModalStore } from "@/store/models/model.modal";
 import { useTodosStore } from "@/store/models/model.todos";
 
 //components
 import AppModal from "./AppModal.vue";
-import AppButton from "./AppButton.vue";
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import ProgressSpinner from "primevue/progressspinner";
 
 export default defineComponent({
   name: "app-form",
+  components: {
+    "prime-btn": Button,
+    "input-text": InputText,
+    // "progress-spenner": ProgressSpinner,
+    AppModal,
+  },
   props: {
     headerTitle: String,
     isOpen: {
@@ -53,6 +73,9 @@ export default defineComponent({
     title: {
       type: String,
     },
+    status: {
+      type: Object,
+    },
   },
   data() {
     return {
@@ -60,24 +83,24 @@ export default defineComponent({
     };
   },
   setup() {
-    const modalStore = useModalStore();
     const todosStore = useTodosStore();
 
     const { handleUpdateTodo } = todosStore;
 
-    return { modalStore, todosStore, handleUpdateTodo };
+    return { todosStore, handleUpdateTodo };
   },
   methods: {
     async handleSubmit() {
+      this.errorMessage = "";
+      if (!this.title || !this.description)
+        return (this.errorMessage = "Fill out all fields");
+
       this.$emit("submit", {
         title: this.title,
         description: this.description,
       });
-
-      this.modalStore.isOpen = false;
     },
   },
-  components: { AppModal, AppButton },
 });
 </script>
 

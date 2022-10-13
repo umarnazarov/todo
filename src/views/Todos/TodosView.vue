@@ -1,26 +1,39 @@
 <template>
-  <div class="todos_container">
-    <app-button
+  <div class="max-w-30rem w-full m-auto py-6">
+    <prime-btn
+      class="w-full border-noround font-light"
       @click="handleOpenCreateModal"
-      title="Create new todo"
-    ></app-button>
+      label="Create new todo"
+    ></prime-btn>
     <app-form
+      headerTitle="Create a new todo"
       @handleTitle="handleTitle"
       @handleDescr="handleDescr"
       :isOpen="isOpenCreate"
       :title="title"
       :description="description"
       @submit="onCreateTodo"
-      @closeModal="isOpenCreate = false"
+      @closeModal="closeModal('isOpenCreate')"
+      :status="{
+        isPending: isPendingUpdate,
+        isRejected: isRejectedUpdate,
+        error,
+      }"
     ></app-form>
     <app-form
+      headerTitle="Update todo"
       @handleTitle="handleTitle"
       @handleDescr="handleDescr"
       :isOpen="isOpenEdit"
       @submit="onUpdateTodo"
       :title="title"
       :description="description"
-      @closeModal="isOpenEdit = false"
+      @closeModal="closeModal('isOpenEdit')"
+      :status="{
+        isPending: isPendingUpdate,
+        isRejected: isRejectedUpdate,
+        error,
+      }"
     ></app-form>
     <div class="todos_content">
       <todo-item
@@ -30,7 +43,13 @@
         :todo="todo"
       ></todo-item>
     </div>
-    <p v-if="storeTodos.isPending">Loading...</p>
+    <p class="text-center pt-3" v-if="storeTodos.isPending">Loading...</p>
+    <p class="text-center pt-3" v-if="!storeTodos.list.length && !isRejected">
+      No todos yet
+    </p>
+    <p class="text-center text-red-400 pt-3" v-if="isRejected">
+      There was a problem while getting todos...
+    </p>
   </div>
 </template>
 
@@ -38,13 +57,25 @@
 import { defineComponent } from "vue";
 import TodoItem from "@/components/Todos/TodoItem.vue";
 import { useTodosStore } from "@/store/models/model.todos";
+import Button from "primevue/button";
+import { storeToRefs } from "pinia";
 
 export default defineComponent({
   setup() {
     const storeTodos = useTodosStore();
     const { handleUpdateTodo } = storeTodos;
+    const { isPendingUpdate, isRejectedUpdate, error, isPending, isRejected } =
+      storeToRefs(storeTodos);
 
-    return { storeTodos, handleUpdateTodo };
+    return {
+      storeTodos,
+      handleUpdateTodo,
+      isPendingUpdate,
+      isRejectedUpdate,
+      isPending,
+      isRejected,
+      error,
+    };
   },
   data() {
     return {
@@ -62,12 +93,18 @@ export default defineComponent({
     handleDescr(event) {
       this.description = event.target.value;
     },
-    onCreateTodo(form: any) {
-      this.handleUpdateTodo(form, "/todos", "POST");
-      this.isOpenCreate = false;
+    async onCreateTodo(form: any) {
+      await this.handleUpdateTodo(form, "/todos", "POST");
+      if (!this.isRejectedUpdate) {
+        this.isOpenCreate = false;
+      }
     },
-    onUpdateTodo() {
-      this.handleUpdateTodo(
+    closeModal(modal) {
+      this.storeTodos.clearStatus();
+      this[modal] = false;
+    },
+    async onUpdateTodo() {
+      await this.handleUpdateTodo(
         {
           title: this.title,
           description: this.description,
@@ -78,7 +115,6 @@ export default defineComponent({
       this.isOpenEdit = false;
     },
     handleOpenEditModal(form) {
-      console.log(form.title);
       this.title = form.title;
       this.description = form.description;
       this.id = form.id;
@@ -91,7 +127,8 @@ export default defineComponent({
       this.isOpenCreate = true;
     },
   },
-  components: { TodoItem },
+
+  components: { TodoItem, "prime-btn": Button },
 });
 </script>
 <style lang="css" scoped>

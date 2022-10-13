@@ -10,6 +10,7 @@ import { ITodo } from "../types/Todos/todo";
 export const useTodosStore = defineStore('todos', {
     state: () => ({
         list: [] as ITodo[],
+        todoID: '',
         isPending: false,
         isPendingDelete: false,
         isPendingUpdate: false,
@@ -19,6 +20,11 @@ export const useTodosStore = defineStore('todos', {
         error: null as string | null
     }),
     actions: {
+        clearStatus(){
+            this.isRejected = false
+            this.isRejectedDelete = false
+            this.isRejectedUpdate = false
+        },
         async getTodos() {
             this.list = [];
             this.isPending = true;
@@ -33,7 +39,7 @@ export const useTodosStore = defineStore('todos', {
                 this.isPending = false;
             }
         },
-        async handleDeleteTodos(id:number) {
+        async handleDeleteTodos(id:string) {
             try {
                 this.isPendingDelete = true;
                 this.isRejectedDelete = false;
@@ -54,7 +60,8 @@ export const useTodosStore = defineStore('todos', {
                 await api(path, { method, data })
                 this.getTodos()
             } catch (e: any) {
-                this.isRejectedUpdate
+                this.error = e.response.data.message;
+                this.isRejectedUpdate = true
             } finally {
                 this.isPendingUpdate = false
             }

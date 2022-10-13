@@ -17,7 +17,9 @@ import { useTodosStore } from "./store/models/model.todos";
 import AppNav from "@/components/Navbar/AppNavbar.vue";
 
 export default defineComponent({
-  components: { AppNav },
+  components: {
+    AppNav,
+  },
   setup() {
     const userStore = useUserStore();
     const todosStore = useTodosStore();
@@ -52,5 +54,6 @@ export default defineComponent({
   padding: 0;
   box-sizing: border-box;
   font-family: sans-serif;
+  font-weight: 100 !important;
 }
 </style>

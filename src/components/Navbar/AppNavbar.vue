@@ -1,26 +1,40 @@
 <template>
-  <nav class="navbar">
-    <h3>Todo Logo</h3>
-    <ul class="links">
-      <router-link v-if="user !== null" class="link" to="/todos"
+  <nav
+    class="w-full flex align-items-center justify-content-between bg-blue-500 py-2 px-3"
+  >
+    <h3 class="text-white">Todo Logo</h3>
+    <ul class="flex align-items-center">
+      <router-link
+        v-if="user !== null"
+        class="text-white ml-3 no-underline"
+        to="/todos"
         >Todos</router-link
       >
-      <router-link class="link" to="/users" v-if="user?.role === 'admin'"
+      <router-link
+        class="text-white ml-3 no-underline"
+        to="/users"
+        v-if="user?.role === 'admin'"
         >Users</router-link
       >
-      <button class="link" @click="handleLogout" v-if="user?.name">
-        Log out
-      </button>
+      <prime-btn
+        class="p-2 font-normal p-button-sm text-blue-600 ml-3 no-underline border-0 bg-w p-button-raised p-button-text bg-white"
+        @click="handleLogout"
+        label="Sign Out"
+        v-if="user?.name"
+      ></prime-btn>
     </ul>
   </nav>
 </template>
 <script lang="ts">
 import { useUserStore } from "@/store/models/model.user";
-import { storeToRefs } from "pinia";
+import Button from "primevue/button";
 import { computed, defineComponent } from "vue";
 
 export default defineComponent({
   name: "app-nav",
+  components: {
+    "prime-btn": Button,
+  },
   setup() {
     const store = useUserStore();
     const user = computed(() => store.me);
@@ -36,15 +50,6 @@ export default defineComponent({
 });
 </script>
 <style lang="css">
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  background-color: rgb(74, 74, 212);
-  padding: 10px 20px;
-  color: #fff;
-}
-
 .link {
   margin-left: 15px;
   color: rgb(0, 0, 0);

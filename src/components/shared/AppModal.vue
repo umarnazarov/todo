@@ -1,6 +1,6 @@
 <template>
-  <div class="container_modal" v-if="isVisible" @click="$emit('closeModal')">
-    <div @click.stop class="content_modal">
+  <div class="container_modal z-1" v-if="isVisible" @click="$emit('closeModal')">
+    <div @click.stop class="max-w-25rem w-full bg-white p-5">
       <slot></slot>
     </div>
   </div>

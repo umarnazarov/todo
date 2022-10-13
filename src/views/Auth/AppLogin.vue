@@ -1,27 +1,46 @@
 <template>
-  <div class="login_container">
-    <div class="login_content">
-      <h3 class="login_content__title">Login</h3>
+  <div
+    class="h-screen justify-content-center flex align-items-center surface-200"
+  >
+    <div class="max-w-22rem w-full bg-white p-4">
+      <h3 class="py-3 font-normal text-center text-xl">Login</h3>
       <form @submit="handleSubmit" class="login_content__form">
-        <app-label-input
+        <span
           v-for="(input, idx) in inputs"
-          v-bind:key="input.label"
-          :idx="idx"
-          :inputType="input.type"
-          :labelTitle="input.label"
-          :required="input.required"
-          :value="input.value"
-          @input="hadnleInputChange($event, idx)"
-        ></app-label-input>
+          :key="input.label"
+          class="p-float-label mt-4"
+        >
+          <input-text
+            :class="{
+              'p-invalid': (!input.value && errorMessage.status) || error,
+            }"
+            class="w-full border-noround"
+            v-bind:key="input.label"
+            :idx="idx"
+            :inputType="input.type"
+            :labelTitle="input.label"
+            :required="input.required"
+            v-model="input.value"
+          />
+          <label for="username">{{ input.label }}</label>
+        </span>
       </form>
-      <app-button
+      <prime-btn
         @click="handleSubmit"
-        style="margin-top: 0.8rem"
-        title="Login"
-      ></app-button>
-      <p v-if="inputs.length !== 0 || error || errorMessage">
-        <span style="color: red; display: inline-block; padding-top: 10px">
-          {{ error || errorMessage }}
+        class="my-3 w-full border-noround relative justify-content-center"
+        label="submit"
+      >
+        <span class="" v-if="isPending"
+          ><progress-spenner
+            class="w-1rem h-1rem"
+            strokeWidth="2"
+            stroke="white"
+        /></span>
+        <span class="text-center w-full" v-else>Submit</span>
+      </prime-btn>
+      <p v-if="inputs.length !== 0 || error || errorMessage.status">
+        <span class="text-red-500 pt-3">
+          {{ error || errorMessage.message }}
         </span>
       </p>
     </div>
@@ -29,13 +48,29 @@
 </template>
 
 <script lang="ts">
+//packages
+import { storeToRefs } from "pinia";
+import { defineComponent } from "vue";
+import { useRouter } from "vue-router";
+// components
+import ProgressSpinner from "primevue/progressspinner";
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+// stores
 import { useTodosStore } from "@/store/models/model.todos";
 import { useUserStore } from "@/store/models/model.user";
-import { storeToRefs } from "pinia";
-import { computed, defineComponent } from "vue";
-import { useRouter } from "vue-router";
+
+type IError = {
+  status: boolean;
+  message: string;
+};
 
 export default defineComponent({
+  components: {
+    "prime-btn": Button,
+    "input-text": InputText,
+    "progress-spenner": ProgressSpinner,
+  },
   name: "app-login",
   data() {
     return {
@@ -49,11 +84,14 @@ export default defineComponent({
         {
           label: "Password",
           required: true,
-          type: "text",
+          type: "password",
           value: "",
         },
       ],
-      errorMessage: "",
+      errorMessage: {
+        status: false,
+        message: "",
+      } as IError,
     };
   },
   setup() {
@@ -61,70 +99,51 @@ export default defineComponent({
     const userStore = useUserStore();
     const todosStore = useTodosStore();
 
-    const { isRejected, error } = storeToRefs(userStore);
+    const { isRejected, error, isPending } = storeToRefs(userStore);
     const { list } = storeToRefs(todosStore);
-
+    console.log(isRejected);
     const { getUser } = userStore;
-    return { router, list, isRejected, getUser, error };
+    return { router, list, isRejected, getUser, error, isPending };
   },
   methods: {
     async handleSubmit() {
       const login = this.inputs[0].value;
       const password = this.inputs[1].value;
-      this.errorMessage = "";
-      if (!login) {
-        this.errorMessage = "Username cannot be empty";
-        return;
-      }
-      if (!password) {
-        this.errorMessage = "Password cannot be empty";
-        return;
-      }
+      this.errorMessage.message = "";
+      this.errorMessage.status = false;
+      if (!login || !password) this.errorMessage.status = true;
+
+      if (!login && !password)
+        return (this.errorMessage.message = "Fields cannot be empty");
+
+      if (!login)
+        return (this.errorMessage.message = "Username cannot be empty");
+      if (!password)
+        return (this.errorMessage.message = "Password cannot be empty");
 
       const form = { login, password };
-      await new Promise((res) =>
-        res(this.getUser({ body: form, method: "POST", path: "/login" }))
-      );
+      await this.getUser({ body: form, method: "POST", path: "/login" });
       !this.isRejected && window.location.replace("/todos");
-    },
-    hadnleInputChange(e: any, idx: number) {
-      this.inputs[idx].value = e.target.value;
     },
   },
 });
 </script>
 
-<style lang="css" scoped>
-.login_container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #eef2f7;
-}
-
-.login_content {
-  width: 100%;
-  max-width: 350px;
-  padding: 3rem;
-  background-color: #fff;
-  box-shadow: 2.8px 2.8px 2.2px rgba(0, 0, 0, 0.02),
-    6.7px 6.7px 5.3px rgba(0, 0, 0, 0.028),
-    12.5px 12.5px 10px rgba(0, 0, 0, 0.035),
-    22.3px 22.3px 17.9px rgba(0, 0, 0, 0.042),
-    41.8px 41.8px 33.4px rgba(0, 0, 0, 0.05),
-    100px 100px 80px rgba(0, 0, 0, 0.07);
-}
-
-.login_content__title {
-  font-size: 1.4rem;
-  font-weight: 100;
-  padding-bottom: 2rem;
-  text-align: center;
-}
-
-.login_content__form {
-  display: flex;
-  flex-direction: column;
+<style lang="css">
+@keyframes p-progress-spinner-color {
+  100%,
+  0% {
+    stroke: #fff;
+  }
+  40% {
+    stroke: #fff;
+  }
+  66% {
+    stroke: #fff;
+  }
+  80%,
+  90% {
+    stroke: #fff;
+  }
 }
 </style>

@@ -34,6 +34,7 @@ export const useUserStore = defineStore('user', {
         ) {
             this.isPending = true;
             this.error = null;
+            this.isRejected = false;
             try {
                 const res = await api(path, {method,data})
                 this.me = res.data
@@ -42,9 +43,10 @@ export const useUserStore = defineStore('user', {
                 Cookies.set('isAuth', "true", { expires })
             } catch (e: any) {
                 this.isRejected = true;
+                console.log("REJECT")
                 this.error = e.response.data.message
             } finally {
-                this.isRejected = false;
+                this.isPending = false;
             }
         },
         async getAllUsers() {
