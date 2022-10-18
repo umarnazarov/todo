@@ -2,7 +2,6 @@ import { IError } from "..";
 
 export interface IUser {
     me: IUserResponseBody | null;
-    isAdmin?: boolean;
     isPending: boolean;
     isRejected: boolean;
     allUsers: IUserResponseBody[];

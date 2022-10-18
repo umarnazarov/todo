@@ -8,11 +8,9 @@
 import { storeToRefs } from "pinia";
 import { defineComponent } from "vue";
 import Cookies from "js-cookie";
-
 //stores
 import { useUserStore } from "./store/models/model.user";
 import { useTodosStore } from "./store/models/model.todos";
-
 // components
 import AppNav from "@/components/Navbar/AppNavbar.vue";
 

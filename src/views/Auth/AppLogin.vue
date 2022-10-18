@@ -95,22 +95,28 @@ export default defineComponent({
     };
   },
   setup() {
+    // router
     const router = useRouter();
     const userStore = useUserStore();
+    // stores
     const todosStore = useTodosStore();
 
     const { isRejected, error, isPending } = storeToRefs(userStore);
     const { list } = storeToRefs(todosStore);
-    console.log(isRejected);
+
     const { getUser } = userStore;
+
     return { router, list, isRejected, getUser, error, isPending };
   },
   methods: {
     async handleSubmit() {
       const login = this.inputs[0].value;
       const password = this.inputs[1].value;
+
       this.errorMessage.message = "";
       this.errorMessage.status = false;
+      
+      // validation of inputs
       if (!login || !password) this.errorMessage.status = true;
 
       if (!login && !password)

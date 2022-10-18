@@ -26,9 +26,12 @@
   </nav>
 </template>
 <script lang="ts">
-import { useUserStore } from "@/store/models/model.user";
-import Button from "primevue/button";
+// packages
 import { computed, defineComponent } from "vue";
+import Button from "primevue/button";
+// stores
+import { useUserStore } from "@/store/models/model.user";
+import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "app-nav",
@@ -37,7 +40,7 @@ export default defineComponent({
   },
   setup() {
     const store = useUserStore();
-    const user = computed(() => store.me);
+    const { me: user } = storeToRefs(store);
     const { logout } = store;
     return { logout, user };
   },

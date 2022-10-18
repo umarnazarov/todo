@@ -1,5 +1,5 @@
 <template>
-  <app-modal :isVisible="isOpen" @closeModal="$emit('closeModal')">
+  <app-modal :isVisible="isOpen" @closeModal="isOpen = false">
     <div>
       <h3>{{ headerTitle }}</h3>
       <form @submit.prevent="handleSubmit">
@@ -52,21 +52,18 @@ import { useTodosStore } from "@/store/models/model.todos";
 import AppModal from "./AppModal.vue";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import ProgressSpinner from "primevue/progressspinner";
 
 export default defineComponent({
   name: "app-form",
   components: {
     "prime-btn": Button,
     "input-text": InputText,
-    // "progress-spenner": ProgressSpinner,
     AppModal,
   },
+  expose: ['handleModal'],
   props: {
     headerTitle: String,
-    isOpen: {
-      type: String,
-    },
+
     description: {
       type: String,
     },
@@ -80,6 +77,7 @@ export default defineComponent({
   data() {
     return {
       errorMessage: "",
+      isOpen: false,
     };
   },
   setup() {
@@ -100,6 +98,9 @@ export default defineComponent({
         description: this.description,
       });
     },
+    handleModal(state: boolean){
+      this.isOpen = state
+    }
   },
 });
 </script>

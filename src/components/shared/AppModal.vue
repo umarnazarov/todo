@@ -1,5 +1,9 @@
 <template>
-  <div class="container_modal z-1" v-if="isVisible" @click="$emit('closeModal')">
+  <div
+    class="container_modal z-1"
+    v-if="isVisible"
+    @click="$emit('closeModal')"
+  >
     <div @click.stop class="max-w-25rem w-full bg-white p-5">
       <slot></slot>
     </div>
@@ -14,6 +18,7 @@ export default defineComponent({
     isVisible: {
       type: Boolean,
       required: true,
+      default: false
     },
   },
 });

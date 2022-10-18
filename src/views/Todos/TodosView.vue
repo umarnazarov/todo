@@ -6,14 +6,13 @@
       label="Create new todo"
     ></prime-btn>
     <app-form
+      ref="createTodo"
       headerTitle="Create a new todo"
       @handleTitle="handleTitle"
       @handleDescr="handleDescr"
-      :isOpen="isOpenCreate"
       :title="title"
       :description="description"
       @submit="onCreateTodo"
-      @closeModal="closeModal('isOpenCreate')"
       :status="{
         isPending: isPendingUpdate,
         isRejected: isRejectedUpdate,
@@ -21,14 +20,13 @@
       }"
     ></app-form>
     <app-form
+      ref="editTodo"
       headerTitle="Update todo"
       @handleTitle="handleTitle"
       @handleDescr="handleDescr"
-      :isOpen="isOpenEdit"
       @submit="onUpdateTodo"
       :title="title"
       :description="description"
-      @closeModal="closeModal('isOpenEdit')"
       :status="{
         isPending: isPendingUpdate,
         isRejected: isRejectedUpdate,
@@ -43,8 +41,11 @@
         :todo="todo"
       ></todo-item>
     </div>
-    <p class="text-center pt-3" v-if="storeTodos.isPending">Loading...</p>
-    <p class="text-center pt-3" v-if="!storeTodos.list.length && !isRejected">
+    <p class="text-center pt-3" v-if="isPending">Loading...</p>
+    <p
+      class="text-center pt-3"
+      v-if="!storeTodos.list.length && !isRejected && !isPending"
+    >
       No todos yet
     </p>
     <p class="text-center text-red-400 pt-3" v-if="isRejected">
@@ -82,8 +83,6 @@ export default defineComponent({
       id: "",
       title: "",
       description: "",
-      isOpenCreate: false,
-      isOpenEdit: false,
     };
   },
   methods: {
@@ -96,12 +95,8 @@ export default defineComponent({
     async onCreateTodo(form: any) {
       await this.handleUpdateTodo(form, "/todos", "POST");
       if (!this.isRejectedUpdate) {
-        this.isOpenCreate = false;
+        (this.$refs["createTodo"] as any).handleModal(false);
       }
-    },
-    closeModal(modal) {
-      this.storeTodos.clearStatus();
-      this[modal] = false;
     },
     async onUpdateTodo() {
       await this.handleUpdateTodo(
@@ -112,19 +107,19 @@ export default defineComponent({
         `/todos/${this.id}`,
         "PUT"
       );
-      this.isOpenEdit = false;
+      (this.$refs["editTodo"] as any).handleModal(false);
     },
     handleOpenEditModal(form) {
       this.title = form.title;
       this.description = form.description;
       this.id = form.id;
-      this.isOpenEdit = true;
+      (this.$refs["editTodo"] as any).handleModal(true);
     },
     handleOpenCreateModal() {
       this.title = "";
       this.description = "";
       this.id = "";
-      this.isOpenCreate = true;
+      (this.$refs["createTodo"] as any).handleModal(true);
     },
   },
 

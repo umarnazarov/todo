@@ -1,10 +1,8 @@
 // packages
 import { defineStore } from "pinia";
 import Cookies from 'js-cookie'
-
 // helper
 import { api } from "@/helpers";
-
 //types
 import { IFetchOptions } from "../types";
 import { IUser, IUserResponseBody } from "../types/User/user";
@@ -12,7 +10,6 @@ import { IUser, IUserResponseBody } from "../types/User/user";
 // user store
 export const useUserStore = defineStore('user', {
     state: () => ({
-        isAdmin: false,
         me: null as IUserResponseBody | null,
         isPending: false,
         isRejected: false,
@@ -20,8 +17,11 @@ export const useUserStore = defineStore('user', {
         allUsers: [] as IUserResponseBody[]
     }),
     getters: {
-        isAuthorized(state){
-            return (createdBy: string) =>  state.me?.role === 'admin'
+        isAuthorized(state) {
+            return state.me?.role === 'admin'
+        },
+        isAuthenticated(state){
+            return state.me !== null
         }
     },
     actions: {
@@ -38,7 +38,6 @@ export const useUserStore = defineStore('user', {
             try {
                 const res = await api(path, {method,data})
                 this.me = res.data
-                console.log('GETTING USER')
                 const expires = new Date(new Date().getTime() + 5 * 60 * 1000);
                 Cookies.set('isAuth', "true", { expires })
             } catch (e: any) {

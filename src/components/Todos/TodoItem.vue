@@ -9,13 +9,13 @@
     <div class="todo_item__buttons">
       <prime-btn
         @click="handleOpen(todo)"
-        v-if="isAuthorized(todo.createdBy!)"
+        v-if="isAuthorized"
         label="Edit"
         class="p-button-warning p-button-sm"
       />
 
       <prime-btn
-        v-if="isAuthorized(todo.createdBy!)"
+        v-if="isAuthorized"
         @click="handleDeleteTodo(todo.id!)"
         :icon="
           isPendingDelete && todoID === todo.id
@@ -27,13 +27,17 @@
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import { useTodosStore } from "@/store/models/model.todos";
-import { useUserStore } from "@/store/models/model.user";
-import { ITodo } from "@/store/types/Todos/todo";
+// packages
 import { storeToRefs } from "pinia";
 import Button from "primevue/button";
 import { defineComponent, PropType } from "vue";
+// stores
+import { useTodosStore } from "@/store/models/model.todos";
+import { useUserStore } from "@/store/models/model.user";
+// types
+import { ITodo } from "@/store/types/Todos/todo";
 
 export default defineComponent({
   name: "todo-item",
@@ -55,59 +59,24 @@ export default defineComponent({
     const todosStore = useTodosStore();
     const userStore = useUserStore();
 
-    const { handleDeleteTodos } = todosStore;
     const { isPendingDelete, todoID } = storeToRefs(todosStore);
+
+    const { handleDeleteTodos } = todosStore;
     const { isAuthorized } = userStore;
+
     return { handleDeleteTodos, isAuthorized, isPendingDelete, todoID };
   },
   methods: {
-    async handleDeleteTodo(id) {
+    async handleDeleteTodo(id: string) {
       this.isLoading = true;
       this.todoID = id;
       await this.handleDeleteTodos(id);
       this.isLoading = false;
     },
-    handleOpen(todo) {
+    handleOpen(todo: ITodo) {
       this.$emit("openModal", todo);
     },
   },
 });
 </script>
-<style lang="css">
-.todo_item {
-  padding: 2rem;
-  border: 1px gray solid;
-  margin: 1rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.todo_item__title {
-  font-size: 1.1rem;
-}
-.todo_item__description {
-  font-size: 1rem;
-  line-height: 1.1;
-  padding-top: 10px;
-}
-#todo_item__btn {
-  padding: 10px 15px;
-  background-color: rgb(175, 25, 25);
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.todo_item__buttons--edit {
-  padding: 10px 15px;
-  background-color: rgb(175, 120, 25);
-  color: #fff;
-  cursor: pointer;
-}
-
-.todo_item__buttons {
-  gap: 10px;
-}
-</style>
+<style></style>

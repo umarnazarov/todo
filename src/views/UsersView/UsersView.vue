@@ -15,17 +15,14 @@ export default defineComponent({
   setup() {
     const userState = useUserStore();
 
-    const { isAdmin, allUsers } = storeToRefs(userState);
+    const { isAuthorized, allUsers } = storeToRefs(userState);
     const { getAllUsers } = userState;
 
-    return { isAdmin, getAllUsers, allUsers };
+    return { isAuthorized, getAllUsers, allUsers };
   },
   beforeMount() {
-    console.log(this.isAdmin);
-    if (this.isAdmin) {
+    if (this.isAuthorized) {
       this.getAllUsers();
-    } else {
-      window.location.replace("/todos");
     }
   },
 });
